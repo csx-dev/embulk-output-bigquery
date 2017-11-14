@@ -61,6 +61,17 @@ module Embulk
               Embulk.logger.error { "embulk-output-bigquery: retry exhausted \##{retries}, #{e.message}" }
               raise e
             end
+          rescue RateLimitExceeded => e
+            if retries < @task['ratelimit_retries']
+              retries += 1
+              sleep_sec = @task['ratelimit_backoff_unit_sec'] * rand(1..2**retries)
+              Embulk.logger.warn { "embulk-output-bigquery: RateLimitExceeded retry \##{retries}, sleep_sec:#{sleep_sec}, #{e.message}" }
+              sleep(sleep_sec)
+              retry
+            else
+              Embulk.logger.error { "embulk-output-bigquery: RateLimitExceeded retry exhausted \##{retries}, #{e.message}" }
+              raise e
+            end
           end
         end
 
@@ -319,6 +330,8 @@ module Embulk
               raise BackendError, msg
             elsif _errors.any? {|error| error.reason == 'internalError' }
               raise InternalError, msg
+            elsif _errors.any? {|error| error.reason == 'rateLimitExceeded'}
+              raise RateLimitExceeded, msg
             else
               Embulk.logger.error { "embulk-output-bigquery: #{msg}" }
               raise Error, msg

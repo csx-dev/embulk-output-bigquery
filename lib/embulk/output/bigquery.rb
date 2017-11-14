@@ -72,6 +72,9 @@ module Embulk
           'application_name'               => config.param('application_name',               :string,  :default => 'Embulk BigQuery plugin'),
           'sdk_log_level'                  => config.param('sdk_log_level',                  :string,  :default => nil),
 
+          'ratelimit_retries'              => config.param('ratelimit_retries',              :integer, :default => 10),
+          'ratelimit_backoff_unit_sec'     => config.param('ratelimit_backoff_unit_sec',     :integer, :default => 1),
+
           'path_prefix'                    => config.param('path_prefix',                    :string,  :default => nil),
           'sequence_format'                => config.param('sequence_format',                :string,  :default => '.%d.%d'),
           'file_ext'                       => config.param('file_ext',                       :string,  :default => nil),
